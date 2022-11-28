@@ -351,10 +351,14 @@ class SE3(LieGroup):
     def _log_map_impl(
         self, jacobians: Optional[List[torch.Tensor]] = None
     ) -> torch.Tensor:
-        sine_axis = torch.zeros(self.shape[0], 3, dtype=self.dtype, device=self.device)
-        sine_axis[:, 0] = 0.5 * (self[:, 2, 1] - self[:, 1, 2])
-        sine_axis[:, 1] = 0.5 * (self[:, 0, 2] - self[:, 2, 0])
-        sine_axis[:, 2] = 0.5 * (self[:, 1, 0] - self[:, 0, 1])
+        sine_axis = 0.5 * torch.stack(
+            tensors=[
+                self[:, 2, 1] - self[:, 1, 2],
+                self[:, 0, 2] - self[:, 2, 0],
+                self[:, 1, 0] - self[:, 0, 1],
+            ],
+            dim=-1,
+        )
         cosine = 0.5 * (self[:, 0, 0] + self[:, 1, 1] + self[:, 2, 2] - 1)
         sine = sine_axis.norm(dim=1)
         theta = torch.atan2(sine, cosine)
